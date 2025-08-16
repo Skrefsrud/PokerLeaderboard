@@ -1,4 +1,9 @@
-import { loadAllRows, buildScoreboard, summarizePerFile } from "@/lib/ledger";
+import {
+  loadAllRows,
+  buildScoreboard,
+  summarizePerFile,
+  findExtremes,
+} from "@/lib/ledger";
 import type { LedgerRow } from "@/lib/types";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import {
@@ -13,18 +18,15 @@ import { PlayerStats } from "@/components/player-stats";
 import { UnknownNamesAlert } from "@/components/unknown-name-alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Users, FileText, DollarSign } from "lucide-react";
+import { TrendingUp, Users, FileText, TrendingDown } from "lucide-react";
 
 export default function Page() {
   const { rows, files, unknown } = loadAllRows();
   const scoreboard = buildScoreboard(rows);
   const fileSummaries = summarizePerFile(files);
-  const totalAcrossAll = scoreboard.reduce((a, r) => a + r.totalNet, 0);
+  const { greatestWin, greatestLoss } = findExtremes(rows);
 
-  const totalSessions = scoreboard.reduce((a, r) => a + r.sessions, 0);
   const activePlayers = scoreboard.length;
-  const biggestWinner = scoreboard[0];
-  const realMoneyTotal = totalAcrossAll / 20;
 
   // Normalize rows down to what's needed on the client
   const simplified = rows
@@ -69,14 +71,14 @@ export default function Page() {
           <Card className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Sessions
+                Total Games
               </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalSessions}</div>
+              <div className="text-2xl font-bold">{files.length}</div>
               <p className="text-xs text-muted-foreground">
-                Across all players
+                Across all ledger files
               </p>
             </CardContent>
           </Card>
@@ -99,18 +101,18 @@ export default function Page() {
           <Card className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Net Total (Chips)
+                Greatest Session Win
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold font-mono">
-                {totalAcrossAll >= 0 ? "+" : ""}
-                {totalAcrossAll.toFixed(2)}
+                {greatestWin.net > 0
+                  ? `+${greatestWin.net.toFixed(2)}`
+                  : greatestWin.net.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {realMoneyTotal >= 0 ? "+" : ""}
-                {realMoneyTotal.toFixed(2)} real money
+                {greatestWin.player_nickname}
               </p>
             </CardContent>
           </Card>
@@ -118,27 +120,22 @@ export default function Page() {
           <Card className="hover:shadow-lg transition-shadow duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Top Player
+                Greatest Session Loss
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {biggestWinner?.player || "N/A"}
+              <div className="text-2xl font-bold font-mono">
+                {greatestLoss.net.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {biggestWinner
-                  ? `+${biggestWinner.totalNet.toFixed(2)} chips`
-                  : "No data"}
+                {greatestLoss.player_nickname}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <LeaderboardTable
-          scoreboard={scoreboard}
-          totalAcrossAll={totalAcrossAll}
-        />
+        <LeaderboardTable scoreboard={scoreboard} />
 
         <Card className="overflow-hidden">
           <CardHeader className="bg-muted/30">

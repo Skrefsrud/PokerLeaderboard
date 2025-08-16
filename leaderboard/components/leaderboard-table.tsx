@@ -20,13 +20,9 @@ export type LeaderboardRow = {
 
 interface LeaderboardTableProps {
   scoreboard: LeaderboardRow[];
-  totalAcrossAll: number;
 }
 
-export function LeaderboardTable({
-  scoreboard,
-  totalAcrossAll,
-}: LeaderboardTableProps) {
+export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
   const getRankIcon = (position: number) => {
     switch (position) {
       case 1:
@@ -104,14 +100,7 @@ export function LeaderboardTable({
                           </span>
                         </div>
                         <span className="font-semibold">{row.player}</span>
-                        {position <= 3 && (
-                          <Badge
-                            variant={position === 1 ? "default" : "secondary"}
-                            className="text-xs"
-                          >
-                            {position === 1 ? "Winner" : `Top ${position}`}
-                          </Badge>
-                        )}
+                        
                       </div>
                     </TableCell>
                     <TableCell>
@@ -152,31 +141,7 @@ export function LeaderboardTable({
           </Table>
         </div>
 
-        <div className="p-6 bg-muted/30 border-t">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-sm font-medium text-muted-foreground">
-                Net Total Across All Players:
-              </span>
-            </div>
-            <div className="text-right">
-              <div className="font-mono text-lg font-bold">
-                <span
-                  className={
-                    totalAcrossAll >= 0 ? "text-primary" : "text-destructive"
-                  }
-                >
-                  {totalAcrossAll >= 0 ? "+" : ""}
-                  {totalAcrossAll.toFixed(2)} chips
-                </span>
-              </div>
-              <div className="font-mono text-sm text-muted-foreground">
-                {totalAcrossAll >= 0 ? "+" : ""}
-                {(totalAcrossAll / 20).toFixed(2)} real money
-              </div>
-            </div>
-          </div>
-        </div>
+        
       </CardContent>
     </Card>
   );

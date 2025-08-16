@@ -77,3 +77,19 @@ export function summarizePerFile(files: string[]): SessionSummary[] {
     totalNet: v.total,
   }));
 }
+
+export function findExtremes(rows: LedgerRow[]): { greatestWin: LedgerRow, greatestLoss: LedgerRow } {
+  let greatestWin: LedgerRow = { player_nickname: '', net: 0 };
+  let greatestLoss: LedgerRow = { player_nickname: '', net: 0 };
+
+  for (const row of rows) {
+    if (row.net > greatestWin.net) {
+      greatestWin = row;
+    }
+    if (row.net < greatestLoss.net) {
+      greatestLoss = row;
+    }
+  }
+
+  return { greatestWin, greatestLoss };
+}
