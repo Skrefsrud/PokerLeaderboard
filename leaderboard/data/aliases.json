@@ -1,0 +1,70 @@
+{
+  "people": [
+    {
+      "name": "Gustav",
+      "aliases": ["🦙", "lama", "lamapirat", "gøss"]
+    },
+    {
+      "name": "Krautern",
+      "aliases": ["krautern2", "kraut", "krautern", "kratuern"]
+    },
+    {
+      "name": "Simen",
+      "aliases": [
+        "simen (ny)",
+        "s1men",
+        "sim",
+        "slegga",
+        "øde",
+        "ødda",
+        "simmi",
+        "øgla",
+        "gus"
+      ]
+    },
+    {
+      "name": "Ole",
+      "aliases": ["schef", "scheff", "scheffler", "greenguy", "gguy"]
+    },
+    {
+      "name": "Kristian",
+      "aliases": ["møll", "moll", "möll", "møllern", "møllebølle", "møllzy"]
+    },
+    {
+      "name": "Oliver",
+      "aliases": ["emoji_127840", "olli", "🍠", "oli"]
+    },
+    {
+      "name": "Ulrik",
+      "aliases": ["viffern", "steamern", "ulrik", "tarriern", "thelimpreaper"]
+    },
+    {
+      "name": "Magnus",
+      "aliases": ["big baller", "mag"]
+    },
+    {
+      "name": "Bendik",
+      "aliases": ["bendik"]
+    },
+    {
+      "name": "Lasse",
+      "aliases": ["nitty dicky", "nitty gritty", "nitty picky", "little nitter"]
+    },
+    {
+      "name": "Harald",
+      "aliases": ["harald"]
+    },
+    {
+      "name": "Adrian",
+      "aliases": ["adrian"]
+    },
+    {
+      "name": "Erlend",
+      "aliases": ["yungcuck"]
+    },
+    {
+      "name": "Unknown",
+      "aliases": ["foot", "ball", "comeback kid"]
+    }
+  ]
+}
