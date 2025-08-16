@@ -24,8 +24,8 @@ export function loadAllRows() {
       if (existing) {
         existing.net += r.net ?? 0;
         // Also update buy_in and buy_out for completeness
-        if (r.buy_in) existing.buy_in += r.buy_in;
-        if (r.buy_out) existing.buy_out += r.buy_out;
+        if (r.buy_in) existing.buy_in = (existing.buy_in ?? 0) + r.buy_in;
+        if (r.buy_out) existing.buy_out = (existing.buy_out ?? 0) + r.buy_out;
         // Update session start/end times
         if (r.session_start_at && (!existing.session_start_at || r.session_start_at < existing.session_start_at)) {
           existing.session_start_at = r.session_start_at;
