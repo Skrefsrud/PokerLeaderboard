@@ -1,6 +1,7 @@
 import type { LedgerRow, ScoreRow, SessionSummary } from "./types";
 import { listCsvFiles, readLedgerCsv } from "./csv";
 import { loadAliasIndex, resolveName } from "./alias";
+import { basename } from "node:path";
 
 export function loadAllRows() {
   const files = listCsvFiles();
@@ -33,16 +34,13 @@ export function buildScoreboard(rows: LedgerRow[]): ScoreRow[] {
     .sort((a, b) => b.totalNet - a.totalNet);
 }
 
-export function summarizePerFile(
-  files: string[],
-  _rows: LedgerRow[]
-): SessionSummary[] {
+export function summarizePerFile(files: string[]): SessionSummary[] {
   // unchanged
   const byFile = new Map<string, { rows: number; total: number }>();
   for (const file of files) {
     const single = readLedgerCsv(file);
     const total = single.reduce((acc, r) => acc + (r.net ?? 0), 0);
-    byFile.set(require("node:path").basename(file), {
+    byFile.set(basename(file), {
       rows: single.length,
       total,
     });

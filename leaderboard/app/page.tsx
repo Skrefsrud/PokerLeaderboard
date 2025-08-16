@@ -1,4 +1,5 @@
 import { loadAllRows, buildScoreboard, summarizePerFile } from "@/lib/ledger";
+import type { LedgerRow } from "@/lib/types";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import {
   Table,
@@ -16,7 +17,7 @@ import { TrendingUp, Users, FileText, DollarSign } from "lucide-react";
 export default function Page() {
   const { rows, files } = loadAllRows();
   const scoreboard = buildScoreboard(rows);
-  const fileSummaries = summarizePerFile(files, rows);
+  const fileSummaries = summarizePerFile(files);
   const totalAcrossAll = scoreboard.reduce((a, r) => a + r.totalNet, 0);
 
   const totalSessions = scoreboard.reduce((a, r) => a + r.sessions, 0);
@@ -26,9 +27,9 @@ export default function Page() {
 
   // Normalize rows down to what's needed on the client
   const simplified = rows
-    .map((r: any) => ({
+    .map((r: LedgerRow) => ({
       // prefer a real date field; fall back to start/end or empty
-      date: r.date ?? r.session_start_at ?? r.session_end_at ?? "",
+      date: r.session_start_at ?? r.session_end_at ?? "",
       player: r.player_nickname,
       // support both ledger types: net or net_chips
       net: typeof r.net === "number" ? r.net : r.net_chips ?? 0,
@@ -39,24 +40,24 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl p-6 space-y-8">
-        <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-secondary p-8 text-primary-foreground">
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <TrendingUp className="h-8 w-8" />
+        <header className="relative rounded-lg bg-gradient-to-r from-card to-card/80 border overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-cyan-400"></div>
+          <div className="p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/30">
+                <TrendingUp className="h-6 w-6 text-cyan-400" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold tracking-tight">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                   Poker Analytics
                 </h1>
-                <p className="text-primary-foreground/80 text-lg">
-                  Comprehensive ledger analysis across {files.length} data file
+                <p className="text-muted-foreground">
+                  Analysis across {files.length} data file
                   {files.length === 1 ? "" : "s"}
                 </p>
               </div>
             </div>
           </div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32"></div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

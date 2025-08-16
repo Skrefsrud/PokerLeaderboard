@@ -21,6 +21,8 @@ import {
   LineElement,
   Tooltip as ChartTooltip,
   Legend,
+  ChartOptions,
+  TooltipItem,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
@@ -130,7 +132,7 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
     ],
   };
 
-  const options: any = {
+  const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
     interaction: { mode: "index", intersect: false },
@@ -143,7 +145,7 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
           padding: 20,
           font: {
             size: 12,
-            weight: "500",
+            weight: "bold",
           },
         },
       },
@@ -156,7 +158,7 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
         cornerRadius: 8,
         callbacks: {
           // Add money equivalents in tooltip
-          afterBody: (ctx: any) => {
+          afterBody: (ctx: TooltipItem<"line">[]) => {
             const i = ctx[0].dataIndex;
             const d = timeline[i];
             return [
@@ -169,9 +171,11 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
     },
     scales: {
       x: {
+        border: {
+          display: false,
+        },
         grid: {
           color: "hsl(var(--border))",
-          drawBorder: false,
         },
         ticks: {
           color: "hsl(var(--muted-foreground))",
@@ -181,9 +185,11 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
         },
       },
       y: {
+        border: {
+          display: false,
+        },
         grid: {
           color: "hsl(var(--border))",
-          drawBorder: false,
         },
         ticks: {
           color: "hsl(var(--muted-foreground))",
@@ -191,7 +197,8 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
             size: 11,
           },
           // show ± with monospace vibe
-          callback: (val: any) => `${Number(val) >= 0 ? "+" : ""}${val}`,
+          callback: (val: string | number) =>
+            `${Number(val) >= 0 ? "+" : ""}${val}`,
         },
       },
     },
@@ -293,6 +300,7 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
             </Card>
 
             <Card>
+              .{" "}
               <CardContent className="p-4">
                 <div className="text-2xl font-bold font-mono text-destructive flex items-center gap-1">
                   <TrendingDown className="h-4 w-4" />
