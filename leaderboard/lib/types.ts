@@ -7,6 +7,7 @@ export type LedgerRow = {
   buy_out?: number | null;
   stack?: number | null;
   net: number; // +win / -loss
+  net_chips?: number;
 };
 
 export type ScoreRow = {
