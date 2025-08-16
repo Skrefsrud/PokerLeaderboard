@@ -56,7 +56,7 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
     const fmt = (d: string) => {
       // try to normalize to yyyy-mm-dd for stable sorting/labels
       const dt = new Date(d);
-      return isNaN(dt.getTime()) ? d : dt.toISOString().slice(0, 10);
+      return isNaN(dt.getTime()) ? d : dt.toISOString();
     };
 
     const filtered = rows
@@ -99,23 +99,10 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
     };
   }, [timeline]);
 
-  const labels = timeline.map((d) => d.date);
+  const labels = timeline.map((d) => d.date.slice(0, 10));
   const data = {
     labels,
     datasets: [
-      {
-        label: "Cumulative (chips)",
-        data: timeline.map((d) => d.cumulative),
-        borderColor: "#06b6d4",
-        backgroundColor: "#06b6d4",
-        tension: 0.25,
-        borderWidth: 3,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        pointBackgroundColor: "#06b6d4",
-        pointBorderColor: "#ffffff",
-        pointBorderWidth: 2,
-      },
       {
         label: "Per-session net (chips)",
         data: timeline.map((d) => d.net),
@@ -126,6 +113,19 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
         pointRadius: 3,
         pointHoverRadius: 5,
         pointBackgroundColor: "#8b5cf6",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+      },
+      {
+        label: "Cumulative (chips)",
+        data: timeline.map((d) => d.cumulative),
+        borderColor: "#06b6d4",
+        backgroundColor: "#06b6d4",
+        tension: 0.25,
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: "#06b6d4",
         pointBorderColor: "#ffffff",
         pointBorderWidth: 2,
       },
@@ -166,6 +166,11 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
               `Cumulative: ${(d.cumulative / 20).toFixed(2)} (money)`,
             ];
           },
+          footer: (ctx: TooltipItem<"line">[]) => {
+            const i = ctx[0].dataIndex;
+            const d = timeline[i];
+            return `Date: ${d.date.slice(0, 10)}`;
+          },
         },
       },
     },
@@ -178,7 +183,7 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
           color: "hsl(var(--border))",
         },
         ticks: {
-          color: "hsl(var(--muted-foreground))",
+          color: "hsl(var(--foreground))",
           font: {
             size: 11,
           },
@@ -300,7 +305,6 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
             </Card>
 
             <Card>
-              .{" "}
               <CardContent className="p-4">
                 <div className="text-2xl font-bold font-mono text-destructive flex items-center gap-1">
                   <TrendingDown className="h-4 w-4" />

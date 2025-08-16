@@ -6,7 +6,7 @@
     },
     {
       "name": "Krautern",
-      "aliases": ["krautern2", "kraut", "krautern", "kratuern"]
+      "aliases": ["krautern2", "kraut", "krautern", "kratuern", "ari"]
     },
     {
       "name": "Simen",
@@ -19,16 +19,26 @@
         "ødda",
         "simmi",
         "øgla",
-        "gus"
+        "gus",
+        "simen ødegard"
       ]
     },
     {
       "name": "Ole",
-      "aliases": ["schef", "scheff", "scheffler", "greenguy", "gguy"]
+      "aliases": ["schef", "scheff", "scheffler", "greenguy", "gguy", "bigbro"]
     },
     {
       "name": "Kristian",
-      "aliases": ["møll", "moll", "möll", "møllern", "møllebølle", "møllzy"]
+      "aliases": [
+        "møll",
+        "moll",
+        "möll",
+        "møllern",
+        "møllebølle",
+        "møllzy",
+        "mølle",
+        "mølly"
+      ]
     },
     {
       "name": "Oliver",
@@ -44,11 +54,18 @@
     },
     {
       "name": "Bendik",
-      "aliases": ["bendik"]
+      "aliases": ["bendik", "ben"]
     },
     {
       "name": "Lasse",
-      "aliases": ["nitty dicky", "nitty gritty", "nitty picky", "little nitter"]
+      "aliases": [
+        "nitty dicky",
+        "nitty gritty",
+        "nitty picky",
+        "little nitter",
+        "gritty nitty",
+        "slippy nitty"
+      ]
     },
     {
       "name": "Harald",
@@ -60,11 +77,11 @@
     },
     {
       "name": "Erlend",
-      "aliases": ["yungcuck"]
+      "aliases": ["yungcuck", "yung cuck"]
     },
     {
-      "name": "Unknown",
-      "aliases": ["foot", "ball", "comeback kid"]
+      "name": "Gaute",
+      "aliases": ["gaute"]
     }
   ]
 }

@@ -1,23 +1,20 @@
 # Session 2025-06-15
-BUYIN=2000
-BB=100
 [BUYINS]
 Erlend - 2
 Ari - 5
-Ulrik - 1
-Bendik - 1
-Mølle - 2
+Ulrik - 3.5
+Bendik - 2
+Mølle - 3
 Gustav - 1 
 Ole - 1
 
 [RESULTS]
 Ole - 11960
 Gustav - 26840
+Møll - 1137
 
 
 # Session 2025-06-18
-BUYIN=2000
-BB=100
 [BUYINS]
 Ulrik - 4
 Simen - 2
@@ -35,10 +32,7 @@ Erlend - 21060
 Gustav - 6920
 
 
-
 # Session 2025-06-19
-BUYIN=2000
-BB=100
 [BUYINS]
 Simen - 2,5
 Erlend - 1
@@ -46,7 +40,7 @@ Gustav - 2
 Kristian - 1,5
 Ulrik - 1
 Ari - 3
-bendik - 1 
+bendik - 1  
 
 [RESULTS]
 Bendik - 2300
@@ -55,8 +49,6 @@ Erlend - 4300
 Gustav - 7640
 
 # Session 2025-06-22
-BUYIN=2000
-BB=100
 [BUYINS]
 Bendik - 4
 Simen -1
@@ -76,8 +68,6 @@ Bendik - 2800
 
 
 # Session 2025-06-25
-BUYIN=2000
-BB=100
 [BUYINS]
 Ulrik - 3
 Simen - 2
@@ -95,8 +85,6 @@ Kristian - 2000
 
 
 # Session 2025-07-01
-BUYIN=2000
-BB=100
 [BUYINS]
 Bendik - 1.7
 Erlend - 2

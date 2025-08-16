@@ -5,19 +5,45 @@ import { basename } from "node:path";
 
 export function loadAllRows() {
   const files = listCsvFiles();
-  const rows = files.flatMap((file) => readLedgerCsv(file));
-
   const idx = loadAliasIndex();
   const unknown: Record<string, number> = {};
 
-  const mapped = rows.map((r) => {
-    const res = resolveName(r.player_nickname, idx);
-    if (!res.known)
-      unknown[res.normalized] = (unknown[res.normalized] ?? 0) + 1;
-    return { ...r, player_nickname: res.canonical };
+  const allSessions = files.flatMap((file) => {
+    const rows = readLedgerCsv(file);
+    const playerSessions = new Map<string, LedgerRow>();
+
+    for (const r of rows) {
+      const res = resolveName(r.player_nickname, idx);
+      const canonicalName = res.known ? res.canonical : "Unknown";
+
+      if (!res.known) {
+        unknown[res.normalized] = (unknown[res.normalized] ?? 0) + 1;
+      }
+
+      const existing = playerSessions.get(canonicalName);
+      if (existing) {
+        existing.net += r.net ?? 0;
+        // Also update buy_in and buy_out for completeness
+        if (r.buy_in) existing.buy_in += r.buy_in;
+        if (r.buy_out) existing.buy_out += r.buy_out;
+        // Update session start/end times
+        if (r.session_start_at && (!existing.session_start_at || r.session_start_at < existing.session_start_at)) {
+          existing.session_start_at = r.session_start_at;
+        }
+        if (r.session_end_at && (!existing.session_end_at || r.session_end_at > existing.session_end_at)) {
+          existing.session_end_at = r.session_end_at;
+        }
+      } else {
+        playerSessions.set(canonicalName, {
+          ...r,
+          player_nickname: canonicalName,
+        });
+      }
+    }
+    return Array.from(playerSessions.values());
   });
 
-  return { rows: mapped, files, unknown };
+  return { rows: allSessions, files, unknown };
 }
 
 export function buildScoreboard(rows: LedgerRow[]): ScoreRow[] {

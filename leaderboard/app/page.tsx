@@ -10,12 +10,13 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { PlayerStats } from "@/components/player-stats";
+import { UnknownNamesAlert } from "@/components/unknown-name-alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Users, FileText, DollarSign } from "lucide-react";
 
 export default function Page() {
-  const { rows, files } = loadAllRows();
+  const { rows, files, unknown } = loadAllRows();
   const scoreboard = buildScoreboard(rows);
   const fileSummaries = summarizePerFile(files);
   const totalAcrossAll = scoreboard.reduce((a, r) => a + r.totalNet, 0);
@@ -59,6 +60,10 @@ export default function Page() {
             </div>
           </div>
         </header>
+
+        {Object.keys(unknown).length > 0 && (
+          <UnknownNamesAlert unknownList={Object.entries(unknown)} />
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="hover:shadow-lg transition-shadow duration-200">
