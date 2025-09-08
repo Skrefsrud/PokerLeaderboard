@@ -47,16 +47,20 @@ export function loadAllRows() {
 }
 
 export function buildScoreboard(rows: LedgerRow[]): ScoreRow[] {
-  const map = new Map<string, { total: number; sessions: number }>();
+  const map = new Map<string, { totalNet: number; sessions: number; totalBuyIn: number }>();
   for (const r of rows) {
     const key = r.player_nickname || "Unknown";
-    const cur = map.get(key) ?? { total: 0, sessions: 0 };
-    cur.total += r.net ?? 0;
+    const cur = map.get(key) ?? { totalNet: 0, sessions: 0, totalBuyIn: 0 };
+    cur.totalNet += r.net ?? 0;
+    cur.totalBuyIn += r.buy_in ?? 0;
     cur.sessions += 1;
     map.set(key, cur);
   }
   return [...map.entries()]
-    .map(([player, v]) => ({ player, totalNet: v.total, sessions: v.sessions }))
+    .map(([player, v]) => {
+      const roi = v.totalBuyIn > 0 ? (v.totalNet / v.totalBuyIn) * 100 : 0;
+      return { player, totalNet: v.totalNet, sessions: v.sessions, roi };
+    })
     .sort((a, b) => b.totalNet - a.totalNet);
 }
 

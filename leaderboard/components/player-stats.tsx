@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { VolatilityHistogram } from "./volatility-histogram";
 
 // Chart.js
 import {
@@ -104,8 +105,8 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
     labels,
     datasets: [
       {
-        label: "Per-session net (chips)",
-        data: timeline.map((d) => d.net),
+        label: "Per-session net (NOK)",
+        data: timeline.map((d) => d.netMoney),
         borderColor: "#8b5cf6",
         backgroundColor: "#8b5cf6",
         tension: 0.25,
@@ -117,8 +118,8 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
         pointBorderWidth: 2,
       },
       {
-        label: "Cumulative (chips)",
-        data: timeline.map((d) => d.cumulative),
+        label: "Cumulative (NOK)",
+        data: timeline.map((d) => d.cumulativeMoney),
         borderColor: "#06b6d4",
         backgroundColor: "#06b6d4",
         tension: 0.25,
@@ -157,15 +158,6 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
         borderWidth: 1,
         cornerRadius: 8,
         callbacks: {
-          // Add money equivalents in tooltip
-          afterBody: (ctx: TooltipItem<"line">[]) => {
-            const i = ctx[0].dataIndex;
-            const d = timeline[i];
-            return [
-              `Per-session: ${(d.net / 20).toFixed(2)} (money)`,
-              `Cumulative: ${(d.cumulative / 20).toFixed(2)} (money)`,
-            ];
-          },
           footer: (ctx: TooltipItem<"line">[]) => {
             const i = ctx[0].dataIndex;
             const d = timeline[i];
@@ -183,10 +175,22 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
           color: "hsl(var(--border))",
         },
         ticks: {
-          color: "hsl(var(--foreground))",
+          color: "#ffffff",
           font: {
-            size: 11,
+            size: 16,
+            weight: "normal",
           },
+          padding: 10,
+        },
+        title: {
+          display: true,
+          text: "Date",
+          color: "#ffffff",
+          font: {
+            size: 18,
+            weight: "normal",
+          },
+          padding: { top: 15 },
         },
       },
       y: {
@@ -197,13 +201,25 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
           color: "hsl(var(--border))",
         },
         ticks: {
-          color: "hsl(var(--muted-foreground))",
+          color: "#ffffff",
           font: {
-            size: 11,
+            size: 16,
+            weight: "normal",
           },
+          padding: 10,
           // show ± with monospace vibe
           callback: (val: string | number) =>
-            `${Number(val) >= 0 ? "+" : ""}${val}`,
+            `${Number(val) >= 0 ? "+" : ""}${Number(val).toFixed(0)}`,
+        },
+        title: {
+          display: true,
+          text: "Net (NOK)",
+          color: "#ffffff",
+          font: {
+            size: 18,
+            weight: "normal",
+          },
+          padding: { bottom: 15 },
         },
       },
     },
@@ -261,10 +277,10 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
                   }`}
                 >
                   {playerStats.totalNet >= 0 ? "+" : ""}
-                  {playerStats.totalNet.toFixed(0)}
+                  {(playerStats.totalNet / 20).toFixed(2)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Total Net (Chips)
+                  Total Net (NOK)
                 </p>
               </CardContent>
             </Card>
@@ -279,9 +295,9 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
                   }`}
                 >
                   {playerStats.avgPerSession >= 0 ? "+" : ""}
-                  {playerStats.avgPerSession.toFixed(0)}
+                  {(playerStats.avgPerSession / 20).toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">Avg per Session</p>
+                <p className="text-xs text-muted-foreground">Avg per Session (NOK)</p>
               </CardContent>
             </Card>
 
@@ -298,9 +314,9 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
               <CardContent className="p-4">
                 <div className="text-2xl font-bold font-mono text-primary flex items-center gap-1">
                   <TrendingUp className="h-4 w-4" />+
-                  {playerStats.bestSession.toFixed(0)}
+                  {(playerStats.bestSession / 20).toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">Best Session</p>
+                <p className="text-xs text-muted-foreground">Best Session (NOK)</p>
               </CardContent>
             </Card>
 
@@ -308,9 +324,9 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
               <CardContent className="p-4">
                 <div className="text-2xl font-bold font-mono text-destructive flex items-center gap-1">
                   <TrendingDown className="h-4 w-4" />
-                  {playerStats.worstSession.toFixed(0)}
+                  {(playerStats.worstSession / 20).toFixed(2)}
                 </div>
-                <p className="text-xs text-muted-foreground">Worst Session</p>
+                <p className="text-xs text-muted-foreground">Worst Session (NOK)</p>
               </CardContent>
             </Card>
           </div>
@@ -340,6 +356,8 @@ export function PlayerStats({ rows }: { rows: Row[] }) {
               </div>
             </CardContent>
           </Card>
+
+          <VolatilityHistogram sessionNets={timeline.map((t) => t.netMoney)} />
         </div>
       ) : (
         <Card>

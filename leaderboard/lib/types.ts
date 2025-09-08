@@ -14,6 +14,7 @@ export type ScoreRow = {
   player: string;
   totalNet: number;
   sessions: number;
+  roi: number;
 };
 
 export type SessionSummary = {

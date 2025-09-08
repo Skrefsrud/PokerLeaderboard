@@ -16,6 +16,7 @@ export type LeaderboardRow = {
   player: string;
   sessions: number;
   totalNet: number;
+  roi: number;
 };
 
 interface LeaderboardTableProps {
@@ -51,7 +52,7 @@ export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10">
+      <CardHeader className="bg-gradient-to-r p-4 from-primary/10 to-secondary/10">
         <CardTitle className="text-2xl font-bold flex items-center gap-2">
           <Trophy className="h-6 w-6 text-primary" />
           Player Leaderboard
@@ -68,10 +69,10 @@ export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
                 <TableHead className="font-semibold">Rank</TableHead>
                 <TableHead className="font-semibold">Player</TableHead>
                 <TableHead className="font-semibold">Sessions</TableHead>
+                <TableHead className="font-semibold">ROI</TableHead>
                 <TableHead className="font-semibold">
-                  Total Net (Chips)
+                  Profitability (NOK)
                 </TableHead>
-                <TableHead className="font-semibold">Real Money</TableHead>
                 <TableHead className="font-semibold">Avg per Session</TableHead>
               </TableRow>
             </TableHeader>
@@ -100,7 +101,6 @@ export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
                           </span>
                         </div>
                         <span className="font-semibold">{row.player}</span>
-                        
                       </div>
                     </TableCell>
                     <TableCell>
@@ -109,13 +109,11 @@ export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
                     <TableCell className="font-mono">
                       <span
                         className={`font-semibold ${
-                          row.totalNet >= 0
-                            ? "text-primary"
-                            : "text-destructive"
+                          row.roi >= 0 ? "text-primary" : "text-destructive"
                         }`}
                       >
-                        {row.totalNet >= 0 ? "+" : ""}
-                        {row.totalNet.toFixed(2)}
+                        {row.roi >= 0 ? "+" : ""}
+                        {row.roi.toFixed(1)}%
                       </span>
                     </TableCell>
                     <TableCell className="font-mono">
@@ -140,8 +138,6 @@ export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
             </TableBody>
           </Table>
         </div>
-
-        
       </CardContent>
     </Card>
   );
