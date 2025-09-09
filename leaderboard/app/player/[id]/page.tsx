@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 
-export default function PlayerPage({ params }: { params: { id: string } }) {
+export default async function PlayerPage({ params }: { params: { id: string } }) {
   const playerId = decodeURIComponent(params.id);
 
   return (
