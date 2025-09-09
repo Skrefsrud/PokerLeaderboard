@@ -1,99 +1,105 @@
-import type { LedgerRow, ScoreRow, SessionSummary } from "./types";
+import "server-only"; // Ensure this module runs only on the server
+
+import type {
+  PlayerSession,
+  PlayerAggregate,
+  PairEdge,
+  RollingPoint,
+  HeatmapBucket,
+  SessionRow,
+} from "./types";
+import {
+  aggregatePlayers,
+  buildRollingSeries,
+  buyInVsNetPoints,
+  heatmapByTimeOfDay,
+  heatmapByWeekday,
+  pairwiseMatchups,
+  profitBySessionLength,
+  rowsToPlayerSessions,
+} from "./metrics";
 import { listCsvFiles, readLedgerCsv } from "./csv";
-import { loadAliasIndex, resolveName } from "./alias";
+import { loadAliasIndex } from "./alias";
 import { basename } from "node:path";
 
-export function loadAllRows() {
+// --- In-memory cache for the current request lifecycle ---
+let sessionCache: PlayerSession[] | null = null;
+let aggregatesCache: PlayerAggregate[] | null = null;
+
+async function primeCaches(): Promise<void> {
+  if (sessionCache && aggregatesCache) return;
+
+  console.log("--- Prime Caches: START ---");
   const files = listCsvFiles();
-  const idx = loadAliasIndex();
-  const unknown: Record<string, number> = {};
+  const aliasIndex = loadAliasIndex();
 
-  const allSessions = files.flatMap((file) => {
-    const rows = readLedgerCsv(file);
-    const playerSessions = new Map<string, LedgerRow>();
+  // 1. Read all raw rows from CSVs
+  const allRows: SessionRow[] = files.flatMap((file) => readLedgerCsv(file));
 
-    for (const r of rows) {
-      const res = resolveName(r.player_nickname, idx);
-      const canonicalName = res.known ? res.canonical : "Unknown";
+  // 2. Convert raw rows to structured PlayerSessions
+  const sessions = rowsToPlayerSessions(allRows, aliasIndex);
+  sessions.sort((a, b) => a.start.getTime() - b.start.getTime()); // Sort chronologically
+  sessionCache = sessions;
 
-      if (!res.known) {
-        unknown[res.normalized] = (unknown[res.normalized] ?? 0) + 1;
-      }
-
-      const existing = playerSessions.get(canonicalName);
-      if (existing) {
-        existing.net += r.net ?? 0;
-        // Also update buy_in and buy_out for completeness
-        if (r.buy_in) existing.buy_in = (existing.buy_in ?? 0) + r.buy_in;
-        if (r.buy_out) existing.buy_out = (existing.buy_out ?? 0) + r.buy_out;
-        // Update session start/end times
-        if (r.session_start_at && (!existing.session_start_at || r.session_start_at < existing.session_start_at)) {
-          existing.session_start_at = r.session_start_at;
-        }
-        if (r.session_end_at && (!existing.session_end_at || r.session_end_at > existing.session_end_at)) {
-          existing.session_end_at = r.session_end_at;
-        }
-      } else {
-        playerSessions.set(canonicalName, {
-          ...r,
-          player_nickname: canonicalName,
-        });
-      }
-    }
-    return Array.from(playerSessions.values());
-  });
-
-  return { rows: allSessions, files, unknown };
+  // 3. Aggregate sessions into player summaries
+  aggregatesCache = aggregatePlayers(sessions);
+  console.log(
+    `--- Prime Caches: DONE (${sessions.length} sessions, ${aggregatesCache.length} players) `
+  );
 }
 
-export function buildScoreboard(rows: LedgerRow[]): ScoreRow[] {
-  const map = new Map<string, { totalNet: number; sessions: number; totalBuyIn: number }>();
-  for (const r of rows) {
-    const key = r.player_nickname || "Unknown";
-    const cur = map.get(key) ?? { totalNet: 0, sessions: 0, totalBuyIn: 0 };
-    cur.totalNet += r.net ?? 0;
-    cur.totalBuyIn += r.buy_in ?? 0;
-    cur.sessions += 1;
-    map.set(key, cur);
-  }
-  return [...map.entries()]
-    .map(([player, v]) => {
-      const roi = v.totalBuyIn > 0 ? (v.totalNet / v.totalBuyIn) * 100 : 0;
-      return { player, totalNet: v.totalNet, sessions: v.sessions, roi };
-    })
-    .sort((a, b) => b.totalNet - a.totalNet);
+export async function getAllPlayerSessions(
+  playerId?: string
+): Promise<PlayerSession[]> {
+  await primeCaches();
+  if (!playerId) return sessionCache!;
+  return sessionCache!.filter((s) => s.playerId === playerId);
 }
 
-export function summarizePerFile(files: string[]): SessionSummary[] {
-  // unchanged
-  const byFile = new Map<string, { rows: number; total: number }>();
-  for (const file of files) {
-    const single = readLedgerCsv(file);
-    const total = single.reduce((acc, r) => acc + (r.net ?? 0), 0);
-    byFile.set(basename(file), {
-      rows: single.length,
-      total,
-    });
-  }
-  return [...byFile.entries()].map(([file, v]) => ({
-    file,
-    rows: v.rows,
-    totalNet: v.total,
-  }));
+export async function getAllAggregates(): Promise<PlayerAggregate[]> {
+  await primeCaches();
+  return aggregatesCache!;
 }
 
-export function findExtremes(rows: LedgerRow[]): { greatestWin: LedgerRow, greatestLoss: LedgerRow } {
-  let greatestWin: LedgerRow = { player_nickname: '', net: 0 };
-  let greatestLoss: LedgerRow = { player_nickname: '', net: 0 };
+export async function getPlayerAggregate(
+  playerId: string
+): Promise<PlayerAggregate | undefined> {
+  await primeCaches();
+  return aggregatesCache!.find((p) => p.playerId === playerId);
+}
 
-  for (const row of rows) {
-    if (row.net > greatestWin.net) {
-      greatestWin = row;
-    }
-    if (row.net < greatestLoss.net) {
-      greatestLoss = row;
-    }
-  }
+export async function getRollingForPlayer(
+  playerId: string
+): Promise<RollingPoint[]> {
+  const playerSessions = await getAllPlayerSessions(playerId);
+  return buildRollingSeries(playerSessions);
+}
 
-  return { greatestWin, greatestLoss };
+export async function getHeatmap(
+  playerId?: string,
+  dim: "hour" | "weekday" = "hour"
+): Promise<HeatmapBucket[]> {
+  const sessions = await getAllPlayerSessions(playerId);
+  return dim === "hour"
+    ? heatmapByTimeOfDay(sessions)
+    : heatmapByWeekday(sessions);
+}
+
+export async function getBuyInVsNet(
+  playerId?: string
+): Promise<{ buyIn: number; net: number; date: Date }[]> {
+  const sessions = await getAllPlayerSessions(playerId);
+  return buyInVsNetPoints(sessions);
+}
+
+export async function getProfitByLength(
+  playerId?: string
+): Promise<{ binLabel: string; avgNet: number; count: number }[]> {
+  const sessions = await getAllPlayerSessions(playerId);
+  return profitBySessionLength(sessions);
+}
+
+export async function getMatchups(): Promise<PairEdge[]> {
+  const allSessions = await getAllPlayerSessions();
+  return pairwiseMatchups(allSessions);
 }
