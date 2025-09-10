@@ -2,16 +2,20 @@ import {
   getAllAggregates,
   getAllPlayerSessions,
   getTopWinnersForPreviousMonth,
+  getContendersForCurrentMonth,
 } from "@/lib/ledger";
 import { LeaderboardTable } from "@/components/leaderboard-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Users, FileText, TrendingDown } from "lucide-react";
 import TopWinnersCard from "@/components/top-winners-card";
+import ContendersChart from "@/components/contenders-chart";
+import CurrentMonthLeaderboard from "@/components/current-month-leaderboard";
 
 export default async function Page() {
   const aggregates = await getAllAggregates();
   const sessions = await getAllPlayerSessions();
   const topWinners = await getTopWinnersForPreviousMonth();
+  const contendersData = await getContendersForCurrentMonth();
 
   const totalGames = new Set(sessions.map((s) => s.ledgerId)).size;
   const activePlayers = aggregates.length;
@@ -111,6 +115,12 @@ export default async function Page() {
         </div>
 
         <TopWinnersCard winners={topWinners} />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ContendersChart data={contendersData} />
+
+          <CurrentMonthLeaderboard data={contendersData} />
+        </div>
 
         <LeaderboardTable />
       </div>

@@ -40,9 +40,7 @@ async function primeCaches(): Promise<void> {
   sessions.sort((a, b) => a.start.getTime() - b.start.getTime()); // Sort chronologically
   sessionCache = sessions;
 
-  console.log(
-    `--- Prime Caches: DONE (${sessions.length} sessions) `
-  );
+  console.log(`--- Prime Caches: DONE (${sessions.length} sessions) `);
 }
 
 export async function getAllPlayerSessions(
@@ -128,11 +126,23 @@ export async function getMatchups(
   return pairwiseMatchups(allSessions);
 }
 
-export async function getTopWinnersForPreviousMonth(): Promise<PlayerAggregate[]> {
+export async function getTopWinnersForPreviousMonth(): Promise<
+  PlayerAggregate[]
+> {
   const today = new Date();
-  const firstDayOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const lastDayOfPreviousMonth = new Date(firstDayOfCurrentMonth.setDate(firstDayOfCurrentMonth.getDate() - 1));
-  const firstDayOfPreviousMonth = new Date(lastDayOfPreviousMonth.getFullYear(), lastDayOfPreviousMonth.getMonth(), 1);
+  const firstDayOfCurrentMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+  const lastDayOfPreviousMonth = new Date(
+    firstDayOfCurrentMonth.setDate(firstDayOfCurrentMonth.getDate() - 1)
+  );
+  const firstDayOfPreviousMonth = new Date(
+    lastDayOfPreviousMonth.getFullYear(),
+    lastDayOfPreviousMonth.getMonth(),
+    1
+  );
 
   const from = firstDayOfPreviousMonth.toISOString().split("T")[0];
   const to = lastDayOfPreviousMonth.toISOString().split("T")[0];
@@ -140,7 +150,82 @@ export async function getTopWinnersForPreviousMonth(): Promise<PlayerAggregate[]
   const sessions = await getAllPlayerSessions(undefined, { from, to });
   const aggregates = aggregatePlayers(sessions);
 
-  return aggregates
+  return aggregates.sort((a, b) => b.totalNetNok - a.totalNetNok).slice(0, 3);
+}
+
+export async function getContendersForCurrentMonth(
+  numContenders: number = 10
+): Promise<{
+  chartData: Record<string, string | number>[];
+  chartConfig: Record<string, { label: string; color: string }>;
+}> {
+  // 1. Get date range for the current month
+  const today = new Date();
+  const firstDayOfCurrentMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+  const from = firstDayOfCurrentMonth.toISOString().split("T")[0];
+  const to = today.toISOString().split("T")[0];
+
+  // 2. Get all sessions for the current month
+  const sessions = await getAllPlayerSessions(undefined, { from, to });
+
+  // 3. Aggregate sessions to get current month's performance
+  const aggregatesThisMonth = aggregatePlayers(sessions);
+
+  // 4. Identify top players for the current month
+  const topPlayerIds = aggregatesThisMonth
     .sort((a, b) => b.totalNetNok - a.totalNetNok)
-    .slice(0, 3);
+    .slice(0, numContenders)
+    .map((p) => p.playerId);
+
+  // 5. Create daily cumulative net profit for each of the top players
+  const dailyCumulativeNet: Record<string, Record<string, number>> = {}; // { '2025-09-01': { player1: 100, player2: 50 } }
+
+  for (const session of sessions) {
+    const dateStr = session.start.toISOString().split("T")[0];
+    if (!dailyCumulativeNet[dateStr]) {
+      dailyCumulativeNet[dateStr] = {};
+    }
+    dailyCumulativeNet[dateStr][session.playerId] =
+      (dailyCumulativeNet[dateStr][session.playerId] || 0) + session.netNok;
+  }
+
+  const chartData: Record<string, string | number>[] = [];
+  const cumulativeTotals: Record<string, number> = {};
+  topPlayerIds.forEach((p) => (cumulativeTotals[p] = 0));
+
+  const date = new Date(firstDayOfCurrentMonth); // Reset date to the first day of the month
+  while (date <= today) {
+    const dateStr = date.toISOString().split("T")[0];
+    const dailyNets = dailyCumulativeNet[dateStr] || {};
+
+    const row: Record<string, string | number> = {
+      date: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+    };
+
+    for (const playerId of topPlayerIds) {
+      cumulativeTotals[playerId] += dailyNets[playerId] || 0;
+      row[playerId] = cumulativeTotals[playerId];
+    }
+
+    chartData.push(row);
+    date.setDate(date.getDate() + 1);
+  }
+
+  // 6. Create chart config
+  const chartConfig: Record<string, { label: string; color: string }> = {};
+  topPlayerIds.forEach((playerId, index) => {
+    chartConfig[playerId] = {
+      label: playerId,
+      color: `var(--chart-${index + 1})`,
+    };
+  });
+
+  return { chartData, chartConfig };
 }

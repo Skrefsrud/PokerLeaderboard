@@ -78,6 +78,8 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
+  const toToken = (k: string) => k.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+
   return (
     <style
       dangerouslySetInnerHTML={{
@@ -90,7 +92,7 @@ ${colorConfig
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    return color ? `  --color-${toToken(key)}: ${color};` : null
   })
   .join("\n")}
 }

@@ -28,6 +28,11 @@
   --chart-3: #868ebb;
   --chart-4: #7a7143;
   --chart-5: #ac9e74;
+  --chart-6: #364a6b;
+  --chart-7: #3f6a6e;
+  --chart-8: #6b8a6e;
+  --chart-9: #8b5e83;
+  --chart-10: #b06e4f;
   --radius: 0.5rem;
   --sidebar: #111111;
   --sidebar-foreground: #fafafa;
@@ -64,6 +69,11 @@
   --chart-3: #71717a;
   --chart-4: #52525b;
   --chart-5: #dc2626;
+  --chart-6: #a1a1aa;
+  --chart-7: #f4f4f5;
+  --chart-8: #e4e4e7;
+  --chart-9: #fafafa;
+  --chart-10: #27272a;
   --sidebar: #0a0a0a;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #ffffff;
@@ -99,6 +109,11 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-9: var(--chart-9);
+  --color-chart-10: var(--chart-10);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
