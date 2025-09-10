@@ -1,7 +1,7 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis } from "recharts";
 
 import {
   Card,
@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  type ChartConfig,
+  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -21,12 +21,12 @@ import {
 const chartConfig = {
   value: {
     label: "Average Net (NOK)",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(var(--chart-3))",
   },
 } satisfies ChartConfig;
 
-export default function TimeHeatmap({
-  data = [], // Added default empty array to handle undefined data
+export default function PerformanceLineChart({
+  data = [],
   xLabel,
 }: {
   data: { xKey: string; value: number }[];
@@ -49,7 +49,6 @@ export default function TimeHeatmap({
   const chartData = data.map((d) => ({
     xKey: d.xKey,
     value: d.value,
-    fill: d.value >= 0 ? "hsl(var(--chart-1))" : "hsl(var(--chart-5))",
   }));
 
   return (
@@ -63,7 +62,7 @@ export default function TimeHeatmap({
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart
+          <LineChart
             accessibilityLayer
             data={chartData}
             margin={{
@@ -78,34 +77,27 @@ export default function TimeHeatmap({
               axisLine={false}
               tickMargin={8}
             />
-            <YAxis
-              tickFormatter={(value) =>
-                `${Number(value) >= 0 ? "+" : ""}${Number(value).toFixed(0)}`
-              }
-            />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="dot" />}
+              content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="value" strokeWidth={2} radius={4}>
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-            </Bar>
-          </BarChart>
+            <Line
+              dataKey="value"
+              type="linear"
+              stroke="var(--chart-3)"
+              strokeWidth={2}
+              dot={false}
+            />
+          </LineChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">
-              Performance varies by {xLabel.toLowerCase()}{" "}
-              <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              Showing average net for all sessions.
-            </div>
-          </div>
+      <CardFooter className="flex-col items-start gap-2 text-sm">
+        <div className="flex gap-2 font-medium leading-none">
+          Performance varies by {xLabel.toLowerCase()}{" "}
+          <TrendingUp className="h-4 w-4" />
+        </div>
+        <div className="leading-none text-muted-foreground">
+          Showing average net for all sessions.
         </div>
       </CardFooter>
     </Card>

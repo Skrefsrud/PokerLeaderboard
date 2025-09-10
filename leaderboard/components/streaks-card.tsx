@@ -1,8 +1,13 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function StreaksCard({ winStreak, loseStreak }: { winStreak: number; loseStreak: number }) {
+export default function StreaksCard({
+  winStreak,
+  loseStreak,
+}: {
+  winStreak: number;
+  loseStreak: number;
+}) {
   return (
     <Card>
       <CardHeader>
@@ -10,12 +15,20 @@ export default function StreaksCard({ winStreak, loseStreak }: { winStreak: numb
       </CardHeader>
       <CardContent className="flex gap-4">
         <div className="flex flex-col items-center">
-            <div className="text-sm text-muted-foreground">Longest Win Streak</div>
-            <Badge variant="success" className="text-lg">{winStreak}</Badge>
+          <div className="text-sm text-muted-foreground">
+            Longest Win Streak
+          </div>
+          <Badge variant="outline" className="text-lg">
+            {winStreak}
+          </Badge>
         </div>
         <div className="flex flex-col items-center">
-            <div className="text-sm text-muted-foreground">Longest Losing Streak</div>
-            <Badge variant="destructive" className="text-lg">{loseStreak}</Badge>
+          <div className="text-sm text-muted-foreground">
+            Longest Losing Streak
+          </div>
+          <Badge variant="destructive" className="text-lg">
+            {loseStreak}
+          </Badge>
         </div>
       </CardContent>
     </Card>

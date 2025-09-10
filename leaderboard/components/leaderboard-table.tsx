@@ -15,6 +15,7 @@ import { getAllAggregates } from "@/lib/ledger";
 // This is now a Server Component that fetches its own data.
 export async function LeaderboardTable() {
   const aggregates = await getAllAggregates();
+  console.log(aggregates);
 
   const getRankIcon = (position: number) => {
     switch (position) {
@@ -60,11 +61,21 @@ export async function LeaderboardTable() {
               <TableRow className="bg-muted/30">
                 <TableHead className="font-semibold">Rank</TableHead>
                 <TableHead className="font-semibold">Player</TableHead>
-                <TableHead className="font-semibold text-center">Sessions</TableHead>
-                <TableHead className="font-semibold text-right">Profit (NOK)</TableHead>
-                <TableHead className="font-semibold text-right">ROI %</TableHead>
-                <TableHead className="font-semibold text-right">Hourly (NOK/h)</TableHead>
-                <TableHead className="font-semibold text-right">Volatility (σ)</TableHead>
+                <TableHead className="font-semibold text-center">
+                  Sessions
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  Profit (NOK)
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  ROI %
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  Hourly (NOK/h)
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  Volatility (σ)
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -83,7 +94,10 @@ export async function LeaderboardTable() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/player/${encodeURIComponent(row.playerId)}`} className="font-semibold hover:underline">
+                      <Link
+                        href={`/player/${encodeURIComponent(row.playerId)}`}
+                        className="font-semibold hover:underline"
+                      >
                         {row.player}
                       </Link>
                     </TableCell>
@@ -102,7 +116,7 @@ export async function LeaderboardTable() {
                         {row.totalNetNok.toFixed(0)}
                       </span>
                     </TableCell>
-                     <TableCell className="font-mono text-right">
+                    <TableCell className="font-mono text-right">
                       <span
                         className={`font-semibold ${
                           row.roiPct >= 0 ? "text-green-400" : "text-red-400"
@@ -112,10 +126,10 @@ export async function LeaderboardTable() {
                       </span>
                     </TableCell>
                     <TableCell className="font-mono text-right text-sm text-muted-foreground">
-                       {row.hourlyRateNok.toFixed(0)}
+                      {row.hourlyRateNok.toFixed(0)}
                     </TableCell>
-                     <TableCell className="font-mono text-right text-sm text-muted-foreground">
-                       {row.volatilityStdNok.toFixed(0)}
+                    <TableCell className="font-mono text-right text-sm text-muted-foreground">
+                      {row.volatilityStdNok.toFixed(0)}
                     </TableCell>
                   </TableRow>
                 );

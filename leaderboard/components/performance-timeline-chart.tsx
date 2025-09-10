@@ -87,7 +87,7 @@ export function PerformanceTimelineChart({ data }: { data: Point[] }) {
             <Line
               dataKey="cumulativeNet"
               type="monotone"
-              stroke="var(--chart-1)"
+              stroke="var(--chart-5)"
               strokeWidth={2}
               dot={false}
             />

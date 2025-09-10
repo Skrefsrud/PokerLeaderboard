@@ -12,8 +12,9 @@ import PlayerBadges from "./player-badges";
 import { badgesFromAggregate } from "@/lib/metrics";
 import TimeHeatmap from "./time-heatmap";
 import BuyInNetScatter from "./buyin-net-scatter";
-import ProfitByLength from "./profit-by-length";
+import ProfitByLengthBarChart from "./profit-by-length-bar-chart";
 import { PerformanceTimelineChart } from "./performance-timeline-chart";
+import PerformanceLineChart from "./performance-line-chart";
 
 export default async function PlayerStats({ playerId }: { playerId: string }) {
   const [aggregate, rolling, heatmapHour, buyInNet, profitLength] =
@@ -73,8 +74,8 @@ export default async function PlayerStats({ playerId }: { playerId: string }) {
       />
 
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <TimeHeatmap data={heatmapHour} xLabel="Hour of Day" />
-        <ProfitByLength bars={profitLength} />
+        <PerformanceLineChart data={heatmapHour} xLabel="Hour of Day" />
+        <ProfitByLengthBarChart bars={profitLength} />
       </div>
 
       <BuyInNetScatter
