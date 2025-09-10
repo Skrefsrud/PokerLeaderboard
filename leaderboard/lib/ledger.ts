@@ -1,99 +1,231 @@
-import type { LedgerRow, ScoreRow, SessionSummary } from "./types";
+import "server-only"; // Ensure this module runs only on the server
+
+import type {
+  PlayerSession,
+  PlayerAggregate,
+  PairEdge,
+  RollingPoint,
+  HeatmapBucket,
+  SessionRow,
+} from "./types";
+import {
+  aggregatePlayers,
+  buildRollingSeries,
+  buyInVsNetPoints,
+  heatmapByTimeOfDay,
+  heatmapByWeekday,
+  pairwiseMatchups,
+  profitBySessionLength,
+  rowsToPlayerSessions,
+} from "./metrics";
 import { listCsvFiles, readLedgerCsv } from "./csv";
-import { loadAliasIndex, resolveName } from "./alias";
+import { loadAliasIndex } from "./alias";
 import { basename } from "node:path";
 
-export function loadAllRows() {
+// --- In-memory cache for the current request lifecycle ---
+let sessionCache: PlayerSession[] | null = null;
+
+async function primeCaches(): Promise<void> {
+  if (sessionCache) return;
+
+  console.log("--- Prime Caches: START ---");
   const files = listCsvFiles();
-  const idx = loadAliasIndex();
-  const unknown: Record<string, number> = {};
+  const aliasIndex = loadAliasIndex();
 
-  const allSessions = files.flatMap((file) => {
-    const rows = readLedgerCsv(file);
-    const playerSessions = new Map<string, LedgerRow>();
+  // 1. Read all raw rows from CSVs
+  const allRows: SessionRow[] = files.flatMap((file) => readLedgerCsv(file));
 
-    for (const r of rows) {
-      const res = resolveName(r.player_nickname, idx);
-      const canonicalName = res.known ? res.canonical : "Unknown";
+  // 2. Convert raw rows to structured PlayerSessions
+  const sessions = rowsToPlayerSessions(allRows, aliasIndex);
+  sessions.sort((a, b) => a.start.getTime() - b.start.getTime()); // Sort chronologically
+  sessionCache = sessions;
 
-      if (!res.known) {
-        unknown[res.normalized] = (unknown[res.normalized] ?? 0) + 1;
-      }
+  console.log(`--- Prime Caches: DONE (${sessions.length} sessions) `);
+}
 
-      const existing = playerSessions.get(canonicalName);
-      if (existing) {
-        existing.net += r.net ?? 0;
-        // Also update buy_in and buy_out for completeness
-        if (r.buy_in) existing.buy_in = (existing.buy_in ?? 0) + r.buy_in;
-        if (r.buy_out) existing.buy_out = (existing.buy_out ?? 0) + r.buy_out;
-        // Update session start/end times
-        if (r.session_start_at && (!existing.session_start_at || r.session_start_at < existing.session_start_at)) {
-          existing.session_start_at = r.session_start_at;
-        }
-        if (r.session_end_at && (!existing.session_end_at || r.session_end_at > existing.session_end_at)) {
-          existing.session_end_at = r.session_end_at;
-        }
-      } else {
-        playerSessions.set(canonicalName, {
-          ...r,
-          player_nickname: canonicalName,
-        });
-      }
+export async function getAllPlayerSessions(
+  playerId?: string,
+  options: { from?: string; to?: string } = {}
+): Promise<PlayerSession[]> {
+  await primeCaches();
+  let sessions = sessionCache!;
+
+  if (playerId) {
+    sessions = sessions.filter((s) => s.playerId === playerId);
+  }
+
+  const { from, to } = options;
+
+  if (from) {
+    sessions = sessions.filter((s) => s.start >= new Date(from));
+  }
+
+  if (to) {
+    sessions = sessions.filter((s) => s.start <= new Date(to));
+  }
+
+  return sessions;
+}
+
+export async function getAllAggregates(
+  options: { from?: string; to?: string } = {}
+): Promise<PlayerAggregate[]> {
+  const sessions = await getAllPlayerSessions(undefined, options);
+  return aggregatePlayers(sessions);
+}
+
+export async function getPlayerAggregate(
+  playerId: string,
+  options: { from?: string; to?: string } = {}
+): Promise<PlayerAggregate | undefined> {
+  const sessions = await getAllPlayerSessions(playerId, options);
+  if (sessions.length === 0) return undefined;
+  const aggregate = aggregatePlayers(sessions);
+  return aggregate.find((p) => p.playerId === playerId);
+}
+
+export async function getRollingForPlayer(
+  playerId: string,
+  options: { from?: string; to?: string } = {}
+): Promise<RollingPoint[]> {
+  const playerSessions = await getAllPlayerSessions(playerId, options);
+  return buildRollingSeries(playerSessions);
+}
+
+export async function getHeatmap(
+  playerId?: string,
+  dim: "hour" | "weekday" = "hour",
+  options: { from?: string; to?: string } = {}
+): Promise<HeatmapBucket[]> {
+  const sessions = await getAllPlayerSessions(playerId, options);
+  return dim === "hour"
+    ? heatmapByTimeOfDay(sessions)
+    : heatmapByWeekday(sessions);
+}
+
+export async function getBuyInVsNet(
+  playerId?: string,
+  options: { from?: string; to?: string } = {}
+): Promise<{ buyIn: number; net: number; date: Date }[]> {
+  const sessions = await getAllPlayerSessions(playerId, options);
+  return buyInVsNetPoints(sessions);
+}
+
+export async function getProfitByLength(
+  playerId?: string,
+  options: { from?: string; to?: string } = {}
+): Promise<{ binLabel: string; avgNet: number; count: number }[]> {
+  const sessions = await getAllPlayerSessions(playerId, options);
+  return profitBySessionLength(sessions);
+}
+
+export async function getMatchups(
+  options: { from?: string; to?: string } = {}
+): Promise<PairEdge[]> {
+  const allSessions = await getAllPlayerSessions(undefined, options);
+  return pairwiseMatchups(allSessions);
+}
+
+export async function getTopWinnersForPreviousMonth(): Promise<
+  PlayerAggregate[]
+> {
+  const today = new Date();
+  const firstDayOfCurrentMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+  const lastDayOfPreviousMonth = new Date(
+    firstDayOfCurrentMonth.setDate(firstDayOfCurrentMonth.getDate() - 1)
+  );
+  const firstDayOfPreviousMonth = new Date(
+    lastDayOfPreviousMonth.getFullYear(),
+    lastDayOfPreviousMonth.getMonth(),
+    1
+  );
+
+  const from = firstDayOfPreviousMonth.toISOString().split("T")[0];
+  const to = lastDayOfPreviousMonth.toISOString().split("T")[0];
+
+  const sessions = await getAllPlayerSessions(undefined, { from, to });
+  const aggregates = aggregatePlayers(sessions);
+
+  return aggregates.sort((a, b) => b.totalNetNok - a.totalNetNok).slice(0, 3);
+}
+
+export async function getContendersForCurrentMonth(
+  numContenders: number = 10
+): Promise<{
+  chartData: Record<string, string | number>[];
+  chartConfig: Record<string, { label: string; color: string }>;
+}> {
+  // 1. Get date range for the current month
+  const today = new Date();
+  const firstDayOfCurrentMonth = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  );
+  const from = firstDayOfCurrentMonth.toISOString().split("T")[0];
+  const to = today.toISOString().split("T")[0];
+
+  // 2. Get all sessions for the current month
+  const sessions = await getAllPlayerSessions(undefined, { from, to });
+
+  // 3. Aggregate sessions to get current month's performance
+  const aggregatesThisMonth = aggregatePlayers(sessions);
+
+  // 4. Identify top players for the current month
+  const topPlayerIds = aggregatesThisMonth
+    .sort((a, b) => b.totalNetNok - a.totalNetNok)
+    .slice(0, numContenders)
+    .map((p) => p.playerId);
+
+  // 5. Create daily cumulative net profit for each of the top players
+  const dailyCumulativeNet: Record<string, Record<string, number>> = {}; // { '2025-09-01': { player1: 100, player2: 50 } }
+
+  for (const session of sessions) {
+    const dateStr = session.start.toISOString().split("T")[0];
+    if (!dailyCumulativeNet[dateStr]) {
+      dailyCumulativeNet[dateStr] = {};
     }
-    return Array.from(playerSessions.values());
+    dailyCumulativeNet[dateStr][session.playerId] =
+      (dailyCumulativeNet[dateStr][session.playerId] || 0) + session.netNok;
+  }
+
+  const chartData: Record<string, string | number>[] = [];
+  const cumulativeTotals: Record<string, number> = {};
+  topPlayerIds.forEach((p) => (cumulativeTotals[p] = 0));
+
+  const date = new Date(firstDayOfCurrentMonth); // Reset date to the first day of the month
+  while (date <= today) {
+    const dateStr = date.toISOString().split("T")[0];
+    const dailyNets = dailyCumulativeNet[dateStr] || {};
+
+    const row: Record<string, string | number> = {
+      date: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+    };
+
+    for (const playerId of topPlayerIds) {
+      cumulativeTotals[playerId] += dailyNets[playerId] || 0;
+      row[playerId] = cumulativeTotals[playerId];
+    }
+
+    chartData.push(row);
+    date.setDate(date.getDate() + 1);
+  }
+
+  // 6. Create chart config
+  const chartConfig: Record<string, { label: string; color: string }> = {};
+  topPlayerIds.forEach((playerId, index) => {
+    chartConfig[playerId] = {
+      label: playerId,
+      color: `var(--chart-${index + 1})`,
+    };
   });
 
-  return { rows: allSessions, files, unknown };
-}
-
-export function buildScoreboard(rows: LedgerRow[]): ScoreRow[] {
-  const map = new Map<string, { totalNet: number; sessions: number; totalBuyIn: number }>();
-  for (const r of rows) {
-    const key = r.player_nickname || "Unknown";
-    const cur = map.get(key) ?? { totalNet: 0, sessions: 0, totalBuyIn: 0 };
-    cur.totalNet += r.net ?? 0;
-    cur.totalBuyIn += r.buy_in ?? 0;
-    cur.sessions += 1;
-    map.set(key, cur);
-  }
-  return [...map.entries()]
-    .map(([player, v]) => {
-      const roi = v.totalBuyIn > 0 ? (v.totalNet / v.totalBuyIn) * 100 : 0;
-      return { player, totalNet: v.totalNet, sessions: v.sessions, roi };
-    })
-    .sort((a, b) => b.totalNet - a.totalNet);
-}
-
-export function summarizePerFile(files: string[]): SessionSummary[] {
-  // unchanged
-  const byFile = new Map<string, { rows: number; total: number }>();
-  for (const file of files) {
-    const single = readLedgerCsv(file);
-    const total = single.reduce((acc, r) => acc + (r.net ?? 0), 0);
-    byFile.set(basename(file), {
-      rows: single.length,
-      total,
-    });
-  }
-  return [...byFile.entries()].map(([file, v]) => ({
-    file,
-    rows: v.rows,
-    totalNet: v.total,
-  }));
-}
-
-export function findExtremes(rows: LedgerRow[]): { greatestWin: LedgerRow, greatestLoss: LedgerRow } {
-  let greatestWin: LedgerRow = { player_nickname: '', net: 0 };
-  let greatestLoss: LedgerRow = { player_nickname: '', net: 0 };
-
-  for (const row of rows) {
-    if (row.net > greatestWin.net) {
-      greatestWin = row;
-    }
-    if (row.net < greatestLoss.net) {
-      greatestLoss = row;
-    }
-  }
-
-  return { greatestWin, greatestLoss };
+  return { chartData, chartConfig };
 }

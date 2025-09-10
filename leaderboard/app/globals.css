@@ -4,9 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #0a0a0a;
+  --background: #14142b;
   --foreground: #fafafa;
-  --card: #111111;
+  --card: #24263a;
   --card-foreground: #fafafa;
   --popover: #111111;
   --popover-foreground: #fafafa;
@@ -20,14 +20,19 @@
   --accent-foreground: #fafafa;
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
-  --border: #262626;
+  --border: #5a5183;
   --input: #111111;
   --ring: rgba(255, 255, 255, 0.1);
-  --chart-1: #ffffff;
-  --chart-2: #a1a1aa;
-  --chart-3: #525252;
-  --chart-4: #737373;
-  --chart-5: #ef4444;
+  --chart-1: #362e54;
+  --chart-2: #5a5183;
+  --chart-3: #868ebb;
+  --chart-4: #7a7143;
+  --chart-5: #ac9e74;
+  --chart-6: #364a6b;
+  --chart-7: #3f6a6e;
+  --chart-8: #6b8a6e;
+  --chart-9: #8b5e83;
+  --chart-10: #b06e4f;
   --radius: 0.5rem;
   --sidebar: #111111;
   --sidebar-foreground: #fafafa;
@@ -40,7 +45,7 @@
 }
 
 .dark {
-  --background: #000000;
+  --background: #ac9e74;
   --foreground: #ffffff;
   --card: #0a0a0a;
   --card-foreground: #ffffff;
@@ -64,6 +69,11 @@
   --chart-3: #71717a;
   --chart-4: #52525b;
   --chart-5: #dc2626;
+  --chart-6: #a1a1aa;
+  --chart-7: #f4f4f5;
+  --chart-8: #e4e4e7;
+  --chart-9: #fafafa;
+  --chart-10: #27272a;
   --sidebar: #0a0a0a;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #ffffff;
@@ -99,6 +109,11 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-9: var(--chart-9);
+  --color-chart-10: var(--chart-10);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

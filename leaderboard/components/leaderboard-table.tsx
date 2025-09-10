@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Table,
   TableHeader,
@@ -10,20 +8,15 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 import { Trophy, Medal, Award } from "lucide-react";
+import { getAllAggregates } from "@/lib/ledger";
 
-export type LeaderboardRow = {
-  player: string;
-  sessions: number;
-  totalNet: number;
-  roi: number;
-};
+// This is now a Server Component that fetches its own data.
+export async function LeaderboardTable() {
+  const aggregates = await getAllAggregates();
+  console.log(aggregates);
 
-interface LeaderboardTableProps {
-  scoreboard: LeaderboardRow[];
-}
-
-export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
   const getRankIcon = (position: number) => {
     switch (position) {
       case 1:
@@ -68,19 +61,26 @@ export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
               <TableRow className="bg-muted/30">
                 <TableHead className="font-semibold">Rank</TableHead>
                 <TableHead className="font-semibold">Player</TableHead>
-                <TableHead className="font-semibold">Sessions</TableHead>
-                <TableHead className="font-semibold">ROI</TableHead>
-                <TableHead className="font-semibold">
-                  Profitability (NOK)
+                <TableHead className="font-semibold text-center">
+                  Sessions
                 </TableHead>
-                <TableHead className="font-semibold">Avg per Session</TableHead>
+                <TableHead className="font-semibold text-right">
+                  Profit (NOK)
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  ROI %
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  Hourly (NOK/h)
+                </TableHead>
+                <TableHead className="font-semibold text-right">
+                  Volatility (σ)
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {scoreboard.map((row, i) => {
+              {aggregates.map((row, i) => {
                 const position = i + 1;
-                const avgPerSession =
-                  row.sessions > 0 ? row.totalNet / row.sessions : 0;
 
                 return (
                   <TableRow
@@ -94,43 +94,42 @@ export function LeaderboardTable({ scoreboard }: LeaderboardTableProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-sm font-semibold text-primary">
-                            {row.player.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <span className="font-semibold">{row.player}</span>
-                      </div>
+                      <Link
+                        href={`/player/${encodeURIComponent(row.playerId)}`}
+                        className="font-semibold hover:underline"
+                      >
+                        {row.player}
+                      </Link>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{row.sessions}</Badge>
+                    <TableCell className="text-center">
+                      <Badge variant="outline">{row.totalSessions}</Badge>
                     </TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="font-mono text-right">
                       <span
                         className={`font-semibold ${
-                          row.roi >= 0 ? "text-primary" : "text-destructive"
+                          row.totalNetNok >= 0
+                            ? "text-green-400"
+                            : "text-red-400"
                         }`}
                       >
-                        {row.roi >= 0 ? "+" : ""}
-                        {row.roi.toFixed(1)}%
+                        {row.totalNetNok >= 0 ? "+" : ""}
+                        {row.totalNetNok.toFixed(0)}
                       </span>
                     </TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="font-mono text-right">
                       <span
                         className={`font-semibold ${
-                          row.totalNet >= 0
-                            ? "text-primary"
-                            : "text-destructive"
+                          row.roiPct >= 0 ? "text-green-400" : "text-red-400"
                         }`}
                       >
-                        {row.totalNet / 20 >= 0 ? "+" : ""}
-                        {(row.totalNet / 20).toFixed(2)}
+                        {row.roiPct.toFixed(1)}%
                       </span>
                     </TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">
-                      {avgPerSession >= 0 ? "+" : ""}
-                      {avgPerSession.toFixed(2)}
+                    <TableCell className="font-mono text-right text-sm text-muted-foreground">
+                      {row.hourlyRateNok.toFixed(0)}
+                    </TableCell>
+                    <TableCell className="font-mono text-right text-sm text-muted-foreground">
+                      {row.volatilityStdNok.toFixed(0)}
                     </TableCell>
                   </TableRow>
                 );
