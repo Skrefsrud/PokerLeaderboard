@@ -12,6 +12,8 @@ import {
   type ChartOptions,
   type ChartData,
   type ChartDataset,
+  type ScatterDataPoint,
+  type TooltipItem,
 } from "chart.js";
 import {
   Card,
@@ -25,6 +27,9 @@ ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 type Point = { buyIn: number; net: number; date: string };
 
+// Your raw data point for the scatter (x,y) + extra meta
+type RawPoint = ScatterDataPoint & { _date: string };
+
 function getCssVar(name: string, fallback = "#999") {
   if (typeof window === "undefined") return fallback;
   const val = getComputedStyle(document.documentElement)
@@ -34,24 +39,22 @@ function getCssVar(name: string, fallback = "#999") {
 }
 
 export default function BuyInNetScatter({ points }: { points: Point[] }) {
-  // Resolve theme colors (once per render)
-  const posColor = getCssVar("--chart-5", "#22c55e"); // positive points
-  const negColor = getCssVar("--chart-3", "#ef4444"); // negative points
-  const tickColor = getCssVar("--muted-foreground", "#a1a1aa"); // axis text
-  const gridColor = getCssVar("--muted-foreground", "#a1a1aa"); // grid lines
+  const posColor = getCssVar("--chart-5", "#22c55e");
+  const negColor = getCssVar("--chart-3", "#ef4444");
+  const tickColor = getCssVar("--muted-foreground", "#a1a1aa");
+  const gridColor = getCssVar("--muted-foreground", "#a1a1aa");
 
-  const dataset = useMemo(
+  const dataset: RawPoint[] = useMemo(
     () => points.map((p) => ({ x: p.buyIn, y: p.net, _date: p.date })),
     [points]
   );
 
-  // Avoid scriptable callbacks -> give arrays instead (fixes TS)
-  const pointColors = useMemo(
+  const pointColors: string[] = useMemo(
     () => dataset.map((d) => (d.y >= 0 ? posColor : negColor)),
     [dataset, posColor, negColor]
   );
 
-  const datasets: ChartDataset<"scatter">[] = [
+  const datasets: ChartDataset<"scatter", RawPoint[]>[] = [
     {
       label: "Session Result",
       data: dataset,
@@ -59,12 +62,12 @@ export default function BuyInNetScatter({ points }: { points: Point[] }) {
       pointRadius: 4,
       pointHoverRadius: 6,
       pointHitRadius: 10,
-      pointBackgroundColor: pointColors, // array of colors
-      pointBorderColor: pointColors, // array of colors
+      pointBackgroundColor: pointColors,
+      pointBorderColor: pointColors,
     },
   ];
 
-  const data: ChartData<"scatter"> = { datasets };
+  const data: ChartData<"scatter", RawPoint[]> = { datasets };
 
   const options: ChartOptions<"scatter"> = {
     responsive: true,
@@ -81,8 +84,9 @@ export default function BuyInNetScatter({ points }: { points: Point[] }) {
             const signed = `${y >= 0 ? "+" : ""}${y.toFixed(0)}`;
             return ` Buy-in: ${x} NOK • Net: ${signed} NOK`;
           },
-          title: (items) => {
-            const d = (items[0]?.raw as any)?._date;
+          title: (items: TooltipItem<"scatter">[]) => {
+            const raw = items[0]?.raw as RawPoint | undefined;
+            const d = raw?._date;
             return d ? new Date(d).toLocaleDateString() : "";
           },
         },
@@ -93,21 +97,21 @@ export default function BuyInNetScatter({ points }: { points: Point[] }) {
       x: {
         type: "linear",
         position: "bottom",
-        grid: { display: false }, // no vertical grid
-        border: { display: false }, // no axis border
+        grid: { display: false },
+        border: { display: false },
         title: { display: true, text: "Buy-in (NOK)", color: tickColor },
         ticks: {
           autoSkip: true,
           maxRotation: 0,
           font: { family: "var(--font-sans)" },
-          color: tickColor, // concrete color string
+          color: tickColor,
         },
       },
       y: {
         grid: {
           display: true,
           lineWidth: 0.5,
-          color: gridColor, // concrete color string
+          color: gridColor,
         },
         border: { display: false },
         title: { display: true, text: "Net Profit (NOK)", color: tickColor },
@@ -117,7 +121,7 @@ export default function BuyInNetScatter({ points }: { points: Point[] }) {
             return `${n >= 0 ? "+" : ""}${n.toFixed(0)}`;
           },
           font: { family: "var(--font-sans)" },
-          color: tickColor, // concrete color string
+          color: tickColor,
         },
       },
     },

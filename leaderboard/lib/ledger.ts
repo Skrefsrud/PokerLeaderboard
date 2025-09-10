@@ -14,13 +14,11 @@ import {
   buyInVsNetPoints,
   heatmapByTimeOfDay,
   heatmapByWeekday,
-  pairwiseMatchups,
   profitBySessionLength,
   rowsToPlayerSessions,
 } from "./metrics";
 import { listCsvFiles, readLedgerCsv } from "./csv";
 import { loadAliasIndex } from "./alias";
-import { basename } from "node:path";
 
 // --- In-memory cache for the current request lifecycle ---
 let sessionCache: PlayerSession[] | null = null;

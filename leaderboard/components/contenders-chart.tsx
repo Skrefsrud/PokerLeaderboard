@@ -1,6 +1,5 @@
 "use client";
 
-import type { PlayerAggregate } from "@/lib/types";
 import {
   Card,
   CardContent,

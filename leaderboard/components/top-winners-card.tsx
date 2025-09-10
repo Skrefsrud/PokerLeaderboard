@@ -40,7 +40,7 @@ export default function TopWinnersCard({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Crown className="text-yellow-500" />
-            Last Month's Top Winners
+            Last Month’s Top Winners
           </CardTitle>
           <CardDescription>
             The top 3 players with the highest net profit from the previous
@@ -96,7 +96,7 @@ export default function TopWinnersCard({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Crown className="text-yellow-500" />
-          Last Month's Top Winners
+          Last Month’s Top Winners
         </CardTitle>
         <CardDescription>
           The top 3 players with the highest net profit from the previous
@@ -108,7 +108,7 @@ export default function TopWinnersCard({
           {podium.map((p, idx) => {
             const isFirst = idx === 1;
             const isSecond = idx === 0;
-            const isThird = idx === 2;
+            // removed unused isThird
 
             const height = toHeight(p.value);
             const barClass = isFirst
