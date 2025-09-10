@@ -10,20 +10,27 @@ import StatCards, { type StatCardItem } from "./stat-cards";
 import StreaksCard from "./streaks-card";
 import PlayerBadges from "./player-badges";
 import { badgesFromAggregate } from "@/lib/metrics";
-import TimeHeatmap from "./time-heatmap";
 import BuyInNetScatter from "./buyin-net-scatter";
 import ProfitByLengthBarChart from "./profit-by-length-bar-chart";
 import { PerformanceTimelineChart } from "./performance-timeline-chart";
 import PerformanceLineChart from "./performance-line-chart";
 
-export default async function PlayerStats({ playerId }: { playerId: string }) {
+export default async function PlayerStats({
+  playerId,
+  from,
+  to,
+}: {
+  playerId: string;
+  from?: string;
+  to?: string;
+}) {
   const [aggregate, rolling, heatmapHour, buyInNet, profitLength] =
     await Promise.all([
-      getPlayerAggregate(playerId),
-      getRollingForPlayer(playerId),
-      getHeatmap(playerId, "hour"),
-      getBuyInVsNet(playerId),
-      getProfitByLength(playerId),
+      getPlayerAggregate(playerId, { from, to }),
+      getRollingForPlayer(playerId, { from, to }),
+      getHeatmap(playerId, "hour", { from, to }),
+      getBuyInVsNet(playerId, { from, to }),
+      getProfitByLength(playerId, { from, to }),
     ]);
 
   if (!aggregate) {
