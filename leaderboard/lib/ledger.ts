@@ -117,13 +117,6 @@ export async function getProfitByLength(
   return profitBySessionLength(sessions);
 }
 
-export async function getMatchups(
-  options: { from?: string; to?: string } = {}
-): Promise<PairEdge[]> {
-  const allSessions = await getAllPlayerSessions(undefined, options);
-  return pairwiseMatchups(allSessions);
-}
-
 export async function getTopWinnersForPreviousMonth(): Promise<
   PlayerAggregate[]
 > {
