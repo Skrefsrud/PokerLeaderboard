@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Trophy, Medal, Award, BarChart } from "lucide-react";
+import Link from "next/link";
 
 type ChartConfig = Record<string, { label: string; color: string }>;
 
@@ -107,7 +108,12 @@ export default function CurrentMonthLeaderboard({
                     className="h-2 w-2 rounded-full"
                     style={{ backgroundColor: entry.color }}
                   />
-                  <span className="font-medium">{entry.label}</span>
+                  <Link
+                    href={`/player/${entry.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    {entry.label}
+                  </Link>
                 </div>
 
                 <span
