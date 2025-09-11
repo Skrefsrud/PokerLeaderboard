@@ -7,7 +7,7 @@ import type {
 } from "./types";
 import { mean, stddev, streaks } from "./math";
 import { toOslo, diffHours } from "./time";
-import { resolveName, type AliasIndex } from "./alias";
+import { resolveName, storeUnmappedAlias, type AliasIndex } from "./alias";
 
 export function rowsToPlayerSessions(
   rows: SessionRow[],
@@ -15,6 +15,9 @@ export function rowsToPlayerSessions(
 ): PlayerSession[] {
   return rows.map((r) => {
     const resolved = resolveName(r.player_nickname, aliasIndex);
+    if (!resolved.known) {
+      storeUnmappedAlias(r.player_nickname);
+    }
     const start = toOslo(r.session_start_at);
     const end = r.session_end_at ? toOslo(r.session_end_at) : null;
 
