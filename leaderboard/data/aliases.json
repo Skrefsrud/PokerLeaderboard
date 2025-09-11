@@ -22,7 +22,7 @@
         "gus",
         "simen ødegard",
         "kabelmannen",
-	"semen"
+        "semen"
       ]
     },
     {
@@ -88,6 +88,14 @@
     {
       "name": "Gaute",
       "aliases": ["gaute"]
+    },
+    {
+      "name": "Unknown",
+      "aliases": ["Ball", "Bolla", "Comeback kid", "Foot", "HHØ"]
+    },
+    {
+      "name": "David",
+      "aliases": ["David"]
     }
   ]
 }

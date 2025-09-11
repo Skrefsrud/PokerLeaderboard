@@ -10,6 +10,7 @@ import { TrendingUp, Users, FileText, TrendingDown } from "lucide-react";
 import TopWinnersCard from "@/components/top-winners-card";
 import ContendersChart from "@/components/contenders-chart";
 import CurrentMonthLeaderboard from "@/components/current-month-leaderboard";
+import { UnmappedAliases } from "@/components/unmapped-aliases";
 
 export default async function Page() {
   const aggregates = await getAllAggregates();
@@ -51,6 +52,9 @@ export default async function Page() {
                 <p className="text-muted-foreground">
                   Analysis of {totalGames} games and {activePlayers} players.
                 </p>
+              </div>
+              <div className="ml-auto">
+                <UnmappedAliases />
               </div>
             </div>
           </div>

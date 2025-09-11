@@ -70,3 +70,13 @@ export function resolveName(
     return { canonical: raw, normalized: n, known: true };
   return { canonical: raw, normalized: n, known: false };
 }
+
+const unmappedAliases = new Set<string>();
+
+export function storeUnmappedAlias(raw: string) {
+  unmappedAliases.add(raw);
+}
+
+export function getUnmappedAliases(): string[] {
+  return Array.from(unmappedAliases).sort();
+}

@@ -6,39 +6,66 @@ import type {
   HeatmapBucket,
 } from "./types";
 import { mean, stddev, streaks } from "./math";
-import { toOslo, diffHours } from "./time";
-import { resolveName, type AliasIndex } from "./alias";
+import { diffHours } from "./time";
+import { resolveName, storeUnmappedAlias, type AliasIndex } from "./alias";
 
 export function rowsToPlayerSessions(
   rows: SessionRow[],
   aliasIndex: AliasIndex
 ): PlayerSession[] {
-  return rows.map((r) => {
+  const sessions = new Map<string, SessionRow[]>();
+
+  for (const r of rows) {
     const resolved = resolveName(r.player_nickname, aliasIndex);
-    const start = toOslo(r.session_start_at);
-    const end = r.session_end_at ? toOslo(r.session_end_at) : null;
+    if (!resolved.known) {
+      storeUnmappedAlias(r.player_nickname);
+    }
 
-    // Duration: min 1 minute, to avoid zero-division and count short sessions
+    const key = `${r.ledger_id}-${resolved.canonical}`;
+    const existing = sessions.get(key) ?? [];
+    existing.push({ ...r, player_nickname: resolved.canonical });
+    sessions.set(key, existing);
+  }
+
+  const playerSessions: PlayerSession[] = [];
+  for (const [, sessionRows] of sessions.entries()) {
+    const first = sessionRows[0];
+    const resolved = resolveName(first.player_nickname, aliasIndex);
+
+    const start = new Date(
+      Math.min(
+        ...sessionRows.map((r) => new Date(r.session_start_at).getTime())
+      )
+    );
+    const end = new Date(
+      Math.max(
+        ...sessionRows
+          .map((r) =>
+            r.session_end_at ? new Date(r.session_end_at).getTime() : 0
+          )
+          .filter((t) => t > 0)
+      )
+    );
+
     const duration = Math.max(diffHours(end ?? start, start), 1 / 60);
+    const totalBuyIn = sessionRows.reduce((sum, r) => sum + (r.buy_in ?? 0), 0);
+    const totalNet = sessionRows.reduce((sum, r) => sum + (r.net ?? 0), 0);
+    const roi = totalBuyIn > 0 ? (totalNet / totalBuyIn) * 100 : 0;
 
-    const buyInChips = r.buy_in ?? 0;
-    const netChips = r.net ?? 0;
-
-    // ROI is calculated on chips/chips, so it's currency-independent.
-    const roi = buyInChips > 0 ? (netChips / buyInChips) * 100 : 0;
-
-    return {
-      playerId: resolved.canonical, // Assume canonical name is the ID for now
+    playerSessions.push({
+      playerId: resolved.canonical,
       player: resolved.canonical,
-      ledgerId: r.ledger_id,
+      ledgerId: first.ledger_id,
       start,
       end,
       durationHours: duration,
-      buyInNok: buyInChips / 20,
-      netNok: netChips / 20,
+      buyInNok: totalBuyIn / 20,
+      netNok: totalNet / 20,
       roiPct: roi,
-    };
-  });
+    });
+  }
+
+  return playerSessions;
 }
 
 export function aggregatePlayers(sessions: PlayerSession[]): PlayerAggregate[] {

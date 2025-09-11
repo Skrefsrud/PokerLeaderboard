@@ -3,7 +3,6 @@ import "server-only"; // Ensure this module runs only on the server
 import type {
   PlayerSession,
   PlayerAggregate,
-  PairEdge,
   RollingPoint,
   HeatmapBucket,
   SessionRow,
