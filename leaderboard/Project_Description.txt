@@ -1,0 +1,95 @@
+This is a Next.js (a React framework) web application built with TypeScript for tracking and visualizing poker game results. It functions as a comprehensive leaderboard and player performance analysis tool.
+
+**Core Functionality:**
+
+The application parses poker session data from `.csv` files located in the `/data` directory. It processes this data to calculate a wide range of statistics and presents them through a user-friendly web interface.
+
+**Technical Stack:**
+
+*   **Framework:** Next.js / React
+*   **Language:** TypeScript
+*   **Styling:** Tailwind CSS with a component library (likely `shadcn/ui`, based on the file structure).
+*   **Data Processing:** Custom logic in the `/lib` directory handles CSV parsing, data aggregation, and metric calculation.
+*   **Linting:** ESLint for code quality.
+
+---
+
+### Detailed Project Structure Breakdown
+
+#### **Root Directory Files**
+
+*   `next.config.ts`: Configuration file for the Next.js framework.
+*   `tailwind.config.ts`: Configuration file for the Tailwind CSS utility-first styling framework.
+*   `postcss.config.mjs`: Configuration for PostCSS, which transforms CSS with JavaScript plugins.
+*   `tsconfig.json`: The TypeScript compiler configuration file, defining how the compiler should behave.
+*   `package.json`: Lists the project's dependencies and scripts (e.g., for starting the development server, building the project).
+*   `components.json`: Likely related to the `shadcn/ui` component library, defining configuration for adding new components.
+*   `eslint.config.mjs`: Configuration for ESLint, the code linter used to enforce code quality and style.
+
+#### **`app/` - Routing and Pages**
+
+This directory uses Next.js's App Router structure.
+
+*   `layout.tsx`: The root layout component that wraps all pages, defining the common HTML structure (e.g., `<html>` and `<body>` tags).
+*   `globals.css`: Global stylesheet, primarily used for Tailwind CSS base styles.
+*   `page.tsx`: The main entry point and home page of the application.
+*   `player/[id]/page.tsx`: A dynamic route for displaying individual player detail pages. The `[id]` part of the path is a parameter representing the player's unique identifier.
+
+#### **`components/` - React Components**
+
+This is where the UI is defined. It's broken down into feature-specific components and generic UI elements.
+
+**Feature Components:**
+
+*   `buyin-net-scatter.tsx`: Renders a scatter plot visualizing the relationship between player buy-ins and their net profit for each session.
+*   `contenders-chart.tsx`: Displays a chart of the top players or 'contenders' for the top leaderboard spots.
+*   `current-month-leaderboard.tsx`: A specialized component to show the leaderboard filtered for the current month only.
+*   `hourly-rate.tsx`: A component to display a player's calculated earnings per hour.
+*   `leaderboard-table.tsx`: The primary component for rendering the main leaderboard in a table format.
+*   `matchups-matrix.tsx`: Renders a matrix or table showing head-to-head results between different players.
+*   `performance-line-chart.tsx`: Shows a player's or the group's performance over time using a line chart.
+*   `performance-timeline-chart.tsx`: An alternative visualization of performance across a timeline.
+*   `player-badges.tsx`: Displays badges for specific player achievements (e.g., 'Hot Streak', 'Most Wins').
+*   `player-stats.tsx`: A container component to display a collection of key statistics for a single player.
+*   `profit-by-length-bar-chart.tsx`: A bar chart that shows how profit correlates with the length of poker sessions.
+*   `stat-cards.tsx`: Renders key statistics in small, easy-to-read 'Card' components.
+*   `streaks-card.tsx`: A dedicated card to highlight a player's current winning or losing streaks.
+*   `time-filter.tsx`: Provides UI controls (like dropdowns or date pickers) to filter the displayed data by a specific time range.
+*   `time-heatmap.tsx`: Renders a heatmap to visualize performance based on the time of day and day of the week.
+*   `top-winners-card.tsx`: A card component that specifically highlights the top winners.
+*   `unknown-name-alert.tsx`: An alert that appears when a player name found in the data files does not have a corresponding alias.
+*   `volatility-histogram.tsx`: Displays a histogram to visualize the variance or 'volatility' in a player's results.
+
+**`components/ui/` - Generic UI Elements (shadcn/ui)**
+
+These are general-purpose, reusable components that form the building blocks of the application's UI.
+
+*   `badge.tsx`, `button.tsx`, `card.tsx`, `input.tsx`, `select.tsx`, `table.tsx`, `tooltip.tsx`: Standard UI elements for displaying information and interacting with the application.
+*   `chart.tsx`: A wrapper component for a charting library (like Recharts), providing a consistent interface for creating the various charts used in the app.
+
+#### **`data/` - Data Sources**
+
+Contains the raw data used by the application.
+
+*   `ledger_*.csv`: A series of CSV files, each containing ledger data from poker sessions. These likely include information on players, buy-ins, cash-outs, and timestamps.
+*   `aliases.json`: A JSON file used to map multiple player names or IDs (which might vary between data files) to a single, consistent player name.
+*   `sessions.txt`: A text file that may contain metadata about the sessions or a list of CSV files to process.
+
+#### **`lib/` - Core Logic and Utilities**
+
+This directory holds the 'brains' of the application—the code that transforms raw data into the insights displayed on the front end.
+
+*   `alias.ts`: Contains functions for reading `aliases.json` and resolving player names.
+*   `csv.ts`: Includes logic for parsing the `.csv` data files.
+*   `ledger.ts`: The core data processing file. It likely reads the parsed CSV data and transforms it into a structured format, like a list of sessions or player results.
+*   `metrics.ts`: The engine of the application. This file contains all the functions for calculating the various poker statistics (e.g., profit, hourly rate, streaks, volatility) from the processed ledger data.
+*   `math.ts`: Provides mathematical helper functions used in the metric calculations.
+*   `time.ts`: Contains utility functions for handling and formatting dates and times.
+*   `types.ts`: Defines the TypeScript types and interfaces used throughout the application (e.g., `Player`, `Session`, `LedgerEntry`).
+*   `utils.ts`: A collection of general-purpose helper functions.
+
+#### **`public/` - Static Assets**
+
+This directory holds static files that are served directly, such as images, fonts, or other assets.
+
+*   `*.svg`: Contains various SVG images used in the application's UI.
